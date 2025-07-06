@@ -15,4 +15,10 @@ export class BookService {
       data,
     });
   }
+
+  async delete(id: number) {
+  return this.prisma.book.delete({
+    where: { id },
+  })
+}
 }

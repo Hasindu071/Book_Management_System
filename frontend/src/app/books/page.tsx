@@ -1,5 +1,6 @@
 'use client'
-import { gql, useQuery } from '@apollo/client'
+
+import { gql, useQuery, useMutation } from '@apollo/client'
 
 const GET_BOOKS = gql`
   query {
@@ -13,8 +14,16 @@ const GET_BOOKS = gql`
   }
 `
 
+const DELETE_BOOK = gql`
+  mutation DeleteBook($id: Int!) {
+    deleteBook(id: $id) {
+      id
+    }
+  }
+`
+
 type Book = {
-  id: string
+  id: number
   title: string
   author: string
   genre: string
@@ -22,7 +31,15 @@ type Book = {
 }
 
 export default function Books() {
-  const { data, loading, error } = useQuery(GET_BOOKS)
+  const { data, loading, error, refetch } = useQuery(GET_BOOKS)
+  const [deleteBook] = useMutation(DELETE_BOOK)
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to delete this book?')) {
+      await deleteBook({ variables: { id } })
+      refetch() // refresh book list
+    }
+  }
 
   if (loading) return <p>Loading...</p>
   if (error) return <p>Error: {error.message}</p>
@@ -38,6 +55,7 @@ export default function Books() {
             <th>Author</th>
             <th>Genre</th>
             <th>Year</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -48,6 +66,9 @@ export default function Books() {
               <td>{book.author}</td>
               <td>{book.genre}</td>
               <td>{book.publishedYear}</td>
+              <td>
+                <button onClick={() => handleDelete(book.id)}>🗑 Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
