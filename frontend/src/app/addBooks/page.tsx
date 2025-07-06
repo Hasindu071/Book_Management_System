@@ -22,6 +22,12 @@ export default function AddBookPage() {
     publishedYear: '',
     genre: ''
   });
+  const [errors, setErrors] = useState({
+    title: '',
+    author: '',
+    publishedYear: '',
+    genre: ''
+  });
   const router = useRouter();
 
   const [createBook, { loading, error }] = useMutation(ADD_BOOK);
@@ -32,10 +38,46 @@ export default function AddBookPage() {
       ...prev,
       [name]: value
     }));
+    setErrors(prev => ({
+      ...prev,
+      [name]: '' // Clear the error message for the field being updated
+    }));
+  };
+
+  const validateForm = () => {
+    const currentYear = new Date().getFullYear();
+    const newErrors: typeof errors = {
+      title: '',
+      author: '',
+      publishedYear: '',
+      genre: ''
+    };
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required.';
+    }
+    if (!formData.author.trim()) {
+      newErrors.author = 'Author is required.';
+    }
+    if (!formData.publishedYear.trim()) {
+      newErrors.publishedYear = 'Published year is required.';
+    } else if (isNaN(Number(formData.publishedYear)) || Number(formData.publishedYear) < 1000 || Number(formData.publishedYear) > currentYear) {
+      newErrors.publishedYear = `Published year must be between 1000 and ${currentYear}.`;
+    }
+    if (!formData.genre.trim()) {
+      newErrors.genre = 'Genre is required.';
+    }
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every(error => error === '');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       await createBook({
@@ -73,6 +115,7 @@ export default function AddBookPage() {
               placeholder="Enter book title"
               required
             />
+            {errors.title && <p className={styles.errorText}>{errors.title}</p>}
           </div>
 
           <div className={styles.formGroup}>
@@ -87,6 +130,7 @@ export default function AddBookPage() {
               placeholder="Enter author name"
               required
             />
+            {errors.author && <p className={styles.errorText}>{errors.author}</p>}
           </div>
 
           <div className={styles.formGroup}>
@@ -103,6 +147,7 @@ export default function AddBookPage() {
               max={new Date().getFullYear()}
               required
             />
+            {errors.publishedYear && <p className={styles.errorText}>{errors.publishedYear}</p>}
           </div>
 
           <div className={styles.formGroup}>
@@ -125,6 +170,7 @@ export default function AddBookPage() {
               <option value="History">History</option>
               <option value="Romance">Romance</option>
             </select>
+            {errors.genre && <p className={styles.errorText}>{errors.genre}</p>}
           </div>
 
           <div className={styles.buttonGroup}>

@@ -152,6 +152,12 @@
   fill: currentColor;
 }
 
+.errorText {
+  color: red;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
 @media (max-width: 640px) {
   .card {
     padding: 1.5rem;

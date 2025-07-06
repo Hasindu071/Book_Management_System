@@ -1,10 +1,11 @@
-'use client'
+'use client';
 
-import { gql, useQuery, useMutation } from '@apollo/client'
-import { CircularProgress, Typography, Box, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, Chip, IconButton } from '@mui/material'
-import { Delete, Edit, Add, Search } from '@mui/icons-material'
-import styles from '../../../styles/books.module.css'
-import { useState } from 'react'
+import { gql, useQuery, useMutation } from '@apollo/client';
+import { CircularProgress, Typography, Box, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, Chip, IconButton } from '@mui/material';
+import { Delete, Edit, Add, Search } from '@mui/icons-material';
+import styles from '../../../styles/books.module.css';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const GET_BOOKS = gql`
   query {
@@ -16,7 +17,7 @@ const GET_BOOKS = gql`
       publishedYear
     }
   }
-`
+`;
 
 const DELETE_BOOK = gql`
   mutation DeleteBook($id: Int!) {
@@ -24,7 +25,7 @@ const DELETE_BOOK = gql`
       id
     }
   }
-`
+`;
 
 const UPDATE_BOOK = gql`
   mutation UpdateBook($id: Int!, $data: UpdateBookInput!) {
@@ -36,78 +37,123 @@ const UPDATE_BOOK = gql`
       publishedYear
     }
   }
-`
+`;
 
 type Book = {
-  id: number
-  title: string
-  author: string
-  genre: string
-  publishedYear: number
-}
+  id: number;
+  title: string;
+  author: string;
+  genre: string;
+  publishedYear: number;
+};
 
 export default function Books() {
-  const { data, loading, error, refetch } = useQuery(GET_BOOKS)
-  const [deleteBook] = useMutation(DELETE_BOOK)
-  const [updateBook] = useMutation(UPDATE_BOOK)
-  const [search, setSearch] = useState('')
-  const [openDialog, setOpenDialog] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
-  const [bookToDelete, setBookToDelete] = useState<number | null>(null)
+  const { data, loading, error, refetch } = useQuery(GET_BOOKS);
+  const [deleteBook] = useMutation(DELETE_BOOK);
+  const [updateBook] = useMutation(UPDATE_BOOK);
+  const [search, setSearch] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [bookToDelete, setBookToDelete] = useState<number | null>(null);
+  const router = useRouter();
   const [formData, setFormData] = useState({
     title: '',
     author: '',
     genre: '',
     publishedYear: ''
-  })
+  });
+  const [errors, setErrors] = useState({
+    title: '',
+    author: '',
+    genre: '',
+    publishedYear: ''
+  });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success' as 'success' | 'error'
-  })
+  });
+
+  const validateForm = () => {
+    const currentYear = new Date().getFullYear();
+    const newErrors: typeof errors = {
+      title: '',
+      author: '',
+      genre: '',
+      publishedYear: ''
+    };
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required.';
+    }
+    if (!formData.author.trim()) {
+      newErrors.author = 'Author is required.';
+    }
+    if (!formData.genre.trim()) {
+      newErrors.genre = 'Genre is required.';
+    }
+    if (!formData.publishedYear.trim()) {
+      newErrors.publishedYear = 'Published year is required.';
+    } else if (isNaN(Number(formData.publishedYear)) || Number(formData.publishedYear) < 1000 || Number(formData.publishedYear) > currentYear) {
+      newErrors.publishedYear = `Published year must be between 1000 and ${currentYear}.`;
+    }
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every(error => error === '');
+  };
 
   const handleDelete = async () => {
     if (bookToDelete !== null) {
       try {
-        await deleteBook({ variables: { id: bookToDelete } })
-        refetch()
-        showSnackbar('Book deleted successfully!', 'success')
+        await deleteBook({ variables: { id: bookToDelete } });
+        refetch();
+        showSnackbar('Book deleted successfully!', 'success');
       } catch {
-        showSnackbar('Failed to delete book', 'error')
+        showSnackbar('Failed to delete book', 'error');
       } finally {
-        handleCloseDeleteDialog()
+        handleCloseDeleteDialog();
       }
     }
-  }
+  };
 
   const handleOpenDialog = (book: Book) => {
-    setSelectedBook(book)
+    setSelectedBook(book);
     setFormData({
       title: book.title,
       author: book.author,
       genre: book.genre,
       publishedYear: book.publishedYear.toString()
-    })
-    setOpenDialog(true)
-  }
+    });
+    setErrors({
+      title: '',
+      author: '',
+      genre: '',
+      publishedYear: ''
+    });
+    setOpenDialog(true);
+  };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false)
-    setSelectedBook(null)
-  }
+    setOpenDialog(false);
+    setSelectedBook(null);
+  };
 
   const handleOpenDeleteDialog = (id: number) => {
-    setBookToDelete(id)
-    setDeleteDialogOpen(true)
-  }
+    setBookToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
   const handleCloseDeleteDialog = () => {
-    setDeleteDialogOpen(false)
-    setBookToDelete(null)
-  }
+    setDeleteDialogOpen(false);
+    setBookToDelete(null);
+  };
 
   const handleUpdate = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       if (selectedBook) {
         await updateBook({
@@ -120,36 +166,36 @@ export default function Books() {
               publishedYear: parseInt(formData.publishedYear)
             }
           }
-        })
-        refetch()
-        handleCloseDialog()
-        showSnackbar('Book updated successfully!', 'success')
+        });
+        refetch();
+        handleCloseDialog();
+        showSnackbar('Book updated successfully!', 'success');
       }
     } catch {
-      showSnackbar('Failed to update book', 'error')
+      showSnackbar('Failed to update book', 'error');
     }
-  }
+  };
 
   const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbar({ open: true, message, severity })
-  }
+    setSnackbar({ open: true, message, severity });
+  };
 
   const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false })
-  }
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const filteredBooks = data?.books.filter((book: Book) =>
     book.title.toLowerCase().includes(search.toLowerCase()) ||
     book.author.toLowerCase().includes(search.toLowerCase()) ||
     book.genre.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   if (loading) return (
     <Box className={styles.loadingContainer}>
       <CircularProgress size={60} thickness={4} />
       <Typography variant="h6" mt={2}>Loading your books...</Typography>
     </Box>
-  )
+  );
 
   if (error) return (
     <Box className={styles.errorContainer}>
@@ -158,11 +204,18 @@ export default function Books() {
         <Typography>{error.message}</Typography>
       </Alert>
     </Box>
-  )
+  );
 
   return (
     <div className={styles.container}>
       <Box className={styles.headerContainer}>
+        <Button
+          variant="outlined"
+          onClick={() => router.back()}
+          className={styles.backButton}
+        >
+          Back
+        </Button>
         <Typography variant="h4" className={styles.header} gutterBottom>
           📚 My Book Collection
         </Typography>
@@ -267,6 +320,8 @@ export default function Books() {
               variant="outlined"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              error={!!errors.title}
+              helperText={errors.title}
             />
             <TextField
               label="Author"
@@ -274,6 +329,8 @@ export default function Books() {
               variant="outlined"
               value={formData.author}
               onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+              error={!!errors.author}
+              helperText={errors.author}
             />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
               <label htmlFor="genre" style={{ fontWeight: 'bold', marginBottom: '8px' }}>Genre</label>
@@ -301,6 +358,7 @@ export default function Books() {
                 <option value="History">History</option>
                 <option value="Romance">Romance</option>
               </select>
+              {errors.genre && <p style={{ color: 'red', fontSize: '0.875rem' }}>{errors.genre}</p>}
             </Box>
             <TextField
               label="Published Year"
@@ -313,6 +371,8 @@ export default function Books() {
                 min: 1000,
                 max: new Date().getFullYear()
               }}
+              error={!!errors.publishedYear}
+              helperText={errors.publishedYear}
             />
           </Box>
         </DialogContent>
@@ -321,7 +381,7 @@ export default function Books() {
           <Button 
             onClick={handleUpdate} 
             variant="contained"
-            disabled={!formData.title || !formData.author}
+            disabled={!formData.title || !formData.author || !formData.genre || !formData.publishedYear}
           >
             Save Changes
           </Button>
@@ -355,5 +415,5 @@ export default function Books() {
         </Alert>
       </Snackbar>
     </div>
-  )
+  );
 }
