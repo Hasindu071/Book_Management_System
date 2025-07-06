@@ -1,0 +1,15 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Book {
+  id: Int!
+  title: String!
+  author: String!
+  genre: String!
+  publishedYear: Int!
+}
+
+type Query {
+  books: [Book!]!
+}
