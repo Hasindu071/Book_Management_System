@@ -21,6 +21,21 @@ export default function Home() {
           View Books
         </button>
       </Link>
+            <Link href="/addBooks">
+        <button
+          style={{
+            marginTop: '20px',
+            padding: '12px 24px',
+            backgroundColor: '#4caf50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Add Books
+        </button>
+      </Link>
     </main>
   )
 }
