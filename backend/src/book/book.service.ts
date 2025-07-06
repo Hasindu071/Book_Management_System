@@ -17,8 +17,15 @@ export class BookService {
   }
 
   async delete(id: number) {
-  return this.prisma.book.delete({
-    where: { id },
-  })
-}
+    return this.prisma.book.delete({
+      where: { id },
+    });
+  }
+
+  async update(id: number, data: Partial<CreateBookInput>) {
+    return this.prisma.book.update({
+      where: { id },
+      data,
+    });
+  }
 }

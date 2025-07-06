@@ -1,0 +1,128 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.searchBar {
+  margin-bottom: 20px;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tableHead {
+  background-color: #4caf50;
+  color: white;
+  text-align: left;
+}
+
+.tableHead th {
+  padding: 12px 15px;
+  font-size: 16px;
+}
+
+.tableBody tr {
+  border-bottom: 1px solid #ddd;
+  transition: background-color 0.3s;
+}
+
+.tableBody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.tableBody td {
+  padding: 12px 15px;
+  font-size: 14px;
+  color: #555;
+}
+
+.actionButton {
+  background-color: #ff5252;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.actionButton:hover {
+  background-color: #e53935;
+}
+
+.addButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s;
+}
+
+.addButton:hover {
+  background-color: #388e3c;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50px;
+}
+
+.error {
+  text-align: center;
+  color: #d32f2f;
+  margin-top: 20px;
+}
+
+.error h6 {
+  font-weight: bold;
+}
+
+.error p {
+  margin-top: 10px;
+}
+
+.updateButton {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 8px; /* Add spacing between buttons */
+  transition: background-color 0.3s;
+}
+
+.updateButton:hover {
+  background-color: #1976d2;
+}
