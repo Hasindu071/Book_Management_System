@@ -1,7 +1,8 @@
 'use client'
 
 import { gql, useQuery, useMutation } from '@apollo/client'
-import { CircularProgress, Typography, Box, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
+import { CircularProgress, Typography, Box, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, Chip, IconButton } from '@mui/material'
+import { Delete, Edit, Add, Search } from '@mui/icons-material'
 import styles from '../../../styles/books.module.css'
 import { useState } from 'react'
 
@@ -51,18 +52,32 @@ export default function Books() {
   const [updateBook] = useMutation(UPDATE_BOOK)
   const [search, setSearch] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
+  const [bookToDelete, setBookToDelete] = useState<number | null>(null)
   const [formData, setFormData] = useState({
     title: '',
     author: '',
     genre: '',
     publishedYear: ''
   })
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error'
+  })
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Are you sure you want to delete this book?')) {
-      await deleteBook({ variables: { id } })
-      refetch() // refresh book list
+  const handleDelete = async () => {
+    if (bookToDelete !== null) {
+      try {
+        await deleteBook({ variables: { id: bookToDelete } })
+        refetch()
+        showSnackbar('Book deleted successfully!', 'success')
+      } catch {
+        showSnackbar('Failed to delete book', 'error')
+      } finally {
+        handleCloseDeleteDialog()
+      }
     }
   }
 
@@ -82,161 +97,263 @@ export default function Books() {
     setSelectedBook(null)
   }
 
+  const handleOpenDeleteDialog = (id: number) => {
+    setBookToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false)
+    setBookToDelete(null)
+  }
+
   const handleUpdate = async () => {
-    if (selectedBook) {
-      await updateBook({
-        variables: {
-          id: selectedBook.id,
-          data: {
-            title: formData.title,
-            author: formData.author,
-            genre: formData.genre,
-            publishedYear: parseInt(formData.publishedYear)
+    try {
+      if (selectedBook) {
+        await updateBook({
+          variables: {
+            id: selectedBook.id,
+            data: {
+              title: formData.title,
+              author: formData.author,
+              genre: formData.genre,
+              publishedYear: parseInt(formData.publishedYear)
+            }
           }
-        }
-      })
-      refetch() // refresh book list
-      handleCloseDialog()
+        })
+        refetch()
+        handleCloseDialog()
+        showSnackbar('Book updated successfully!', 'success')
+      }
+    } catch {
+      showSnackbar('Failed to update book', 'error')
     }
   }
 
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+    setSnackbar({ open: true, message, severity })
+  }
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false })
+  }
+
   const filteredBooks = data?.books.filter((book: Book) =>
-    book.title.toLowerCase().includes(search.toLowerCase())
+    book.title.toLowerCase().includes(search.toLowerCase()) ||
+    book.author.toLowerCase().includes(search.toLowerCase()) ||
+    book.genre.toLowerCase().includes(search.toLowerCase())
   )
 
   if (loading) return (
-    <Box className={styles.loading}>
-      <CircularProgress color="primary" />
-      <Typography ml={2}>Loading books...</Typography>
+    <Box className={styles.loadingContainer}>
+      <CircularProgress size={60} thickness={4} />
+      <Typography variant="h6" mt={2}>Loading your books...</Typography>
     </Box>
   )
 
   if (error) return (
-    <Box className={styles.error}>
-      <Typography variant="h6">Error:</Typography>
-      <Typography>{error.message}</Typography>
+    <Box className={styles.errorContainer}>
+      <Alert severity="error" sx={{ width: '100%' }}>
+        <Typography variant="h6">Error loading books</Typography>
+        <Typography>{error.message}</Typography>
+      </Alert>
     </Box>
   )
 
   return (
     <div className={styles.container}>
-      <Typography variant="h3" className={styles.header}>
-        📚 Book List
-      </Typography>
+      <Box className={styles.headerContainer}>
+        <Typography variant="h4" className={styles.header} gutterBottom>
+          📚 My Book Collection
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          {data?.books.length} books in your library
+        </Typography>
+      </Box>
 
-      <Box className={styles.searchBar}>
+      <Box className={styles.toolbar}>
         <TextField
-          label="Search by Title"
+          label="Search books"
           variant="outlined"
+          size="small"
           fullWidth
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: <Search color="action" sx={{ mr: 1 }} />
+          }}
+          sx={{ maxWidth: 400 }}
         />
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => window.location.href = '/addBooks'}
+          className={styles.addButton}
+        >
+          Add Book
+        </Button>
       </Box>
 
-      <div className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead className={styles.tableHead}>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Genre</th>
-              <th>Year</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody className={styles.tableBody}>
-            {filteredBooks.map((book: Book) => (
-              <tr key={book.id}>
-                <td>{book.id}</td>
-                <td>
-                  <Typography fontWeight="500">
-                    {book.title}
-                  </Typography>
-                </td>
-                <td>{book.author}</td>
-                <td>
-                  <Box 
-                    sx={{
-                      color: 'white',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      display: 'inline-block',
-                      backgroundColor: '#4caf50'
-                    }}
-                  >
-                    {book.genre}
-                  </Box>
-                </td>
-                <td>{book.publishedYear}</td>
-                <td>
-                  <button 
-                    className={styles.actionButton}
-                    onClick={() => handleDelete(book.id)}
-                  >
-                    <span>🗑</span> Delete
-                  </button>
-                  <button 
-                    className={styles.updateButton}
-                    onClick={() => handleOpenDialog(book)}
-                  >
-                    <span>✏️</span> Update
-                  </button>
-                </td>
+      <Box className={styles.tableContainer}>
+        {filteredBooks.length === 0 ? (
+          <Box className={styles.emptyState}>
+            <Typography variant="h6" color="text.secondary">
+              No books found matching your search
+            </Typography>
+          </Box>
+        ) : (
+          <table className={styles.table}>
+            <thead className={styles.tableHead}>
+              <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Genre</th>
+                <th>Year</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className={styles.tableBody}>
+              {filteredBooks.map((book: Book) => (
+                <tr key={book.id}>
+                  <td>
+                    <Typography fontWeight="600">
+                      {book.title}
+                    </Typography>
+                  </td>
+                  <td>{book.author}</td>
+                  <td>
+                    <Chip 
+                      label={book.genre}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: '#4caf50',
+                        color: 'white',
+                        fontWeight: 500
+                      }}
+                    />
+                  </td>
+                  <td>{book.publishedYear}</td>
+                  <td className={styles.actionsCell}>
+                    <IconButton 
+                      color="primary"
+                      onClick={() => handleOpenDialog(book)}
+                      aria-label="edit"
+                    >
+                      <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton 
+                      color="error"
+                      onClick={() => handleOpenDeleteDialog(book.id)}
+                      aria-label="delete"
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Box>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Update Book</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Title"
-            fullWidth
-            margin="dense"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          />
-          <TextField
-            label="Author"
-            fullWidth
-            margin="dense"
-            value={formData.author}
-            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-          />
-          <TextField
-            label="Genre"
-            fullWidth
-            margin="dense"
-            value={formData.genre}
-            onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-          />
-          <TextField
-            label="Published Year"
-            fullWidth
-            margin="dense"
-            type="number"
-            value={formData.publishedYear}
-            onChange={(e) => setFormData({ ...formData, publishedYear: e.target.value })}
-          />
+      {/* Update Book Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Update Book Details</DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+            <TextField
+              label="Title"
+              fullWidth
+              variant="outlined"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            />
+            <TextField
+              label="Author"
+              fullWidth
+              variant="outlined"
+              value={formData.author}
+              onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+              <label htmlFor="genre" style={{ fontWeight: 'bold', marginBottom: '8px' }}>Genre</label>
+              <select
+                id="genre"
+                name="genre"
+                value={formData.genre}
+                onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                style={{
+                  padding: '10px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  fontSize: '16px',
+                  width: '100%',
+                }}
+                required
+              >
+                <option value="" disabled>Select a genre</option>
+                <option value="Fiction">Fiction</option>
+                <option value="Non-Fiction">Non-Fiction</option>
+                <option value="Science Fiction">Science Fiction</option>
+                <option value="Fantasy">Fantasy</option>
+                <option value="Mystery">Mystery</option>
+                <option value="Biography">Biography</option>
+                <option value="History">History</option>
+                <option value="Romance">Romance</option>
+              </select>
+            </Box>
+            <TextField
+              label="Published Year"
+              fullWidth
+              variant="outlined"
+              type="number"
+              value={formData.publishedYear}
+              onChange={(e) => setFormData({ ...formData, publishedYear: e.target.value })}
+              inputProps={{
+                min: 1000,
+                max: new Date().getFullYear()
+              }}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">Cancel</Button>
-          <Button onClick={handleUpdate} color="primary">Update</Button>
+          <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+          <Button 
+            onClick={handleUpdate} 
+            variant="contained"
+            disabled={!formData.title || !formData.author}
+          >
+            Save Changes
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Button
-        variant="contained"
-        color="primary"
-        className={styles.addButton}
-        onClick={() => alert('Add Book functionality coming soon!')}
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this book? This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        ➕ Add Book
-      </Button>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   )
 }

@@ -18,6 +18,8 @@ type Mutation {
   createBook(data: CreateBookInput!): Book!
   deleteBook(id: Int!): Book!
   updateBook(id: Int!, data: UpdateBookInput!): Book!
+  login(data: AuthInput!): String!
+  register(data: AuthInput!): String!
 }
 
 input CreateBookInput {
@@ -32,4 +34,9 @@ input UpdateBookInput {
   author: String
   genre: String
   publishedYear: Int
+}
+
+input AuthInput {
+  username: String!
+  password: String!
 }

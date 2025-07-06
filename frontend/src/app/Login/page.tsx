@@ -1,47 +1,72 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import styles from '../../../styles/auth.module.css';
+import { useState } from 'react'
+import { useMutation } from '@apollo/client'
+import { LOGIN } from '../lib/queries'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import styles from '../../../styles/login.module.css'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const router = useRouter();
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [login, { loading, error }] = useMutation(LOGIN)
+  const router = useRouter()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Add your login logic here (e.g., API call)
-    console.log('Logging in with:', { email, password });
-    router.push('/books'); // Redirect to books page after login
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const res = await login({ variables: { username, password } })
+      localStorage.setItem('token', res.data.login)
+      router.push('/homepage')
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Login</h2>
-      <form onSubmit={handleLogin} className={styles.form}>
-        <label className={styles.label}>Email</label>
-        <input
-          type="email"
-          className={styles.input}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <label className={styles.label}>Password</label>
-        <input
-          type="password"
-          className={styles.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <button type="submit" className={styles.button}>
-          Login
-        </button>
-      </form>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Welcome Back</h1>
+        <p className={styles.subtitle}>Sign in to your account</p>
+        
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label htmlFor="username" className={styles.label}>Username</label>
+            <input
+              id="username"
+              className={styles.input}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label htmlFor="password" className={styles.label}>Password</label>
+            <input
+              id="password"
+              type="password"
+              className={styles.input}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          
+          <button type="submit" className={styles.button} disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+          
+          {error && <p className={styles.error}>{error.message}</p>}
+          
+          <div className={styles.registerLink}>
+            Don&#39;t have an account? <Link href="/register" className={styles.link}>Sign up</Link>
+          </div>
+        </form>
+      </div>
     </div>
-  );
+  )
 }

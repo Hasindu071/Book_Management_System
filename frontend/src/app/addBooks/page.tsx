@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { gql, useMutation } from '@apollo/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import styles from '../../../styles/addBook.module.css';
 
 const ADD_BOOK = gql`
@@ -15,75 +16,140 @@ const ADD_BOOK = gql`
 `;
 
 export default function AddBookPage() {
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [publishedYear, setPublishedYear] = useState('');
-  const [genre, setGenre] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    author: '',
+    publishedYear: '',
+    genre: ''
+  });
   const router = useRouter();
 
   const [createBook, { loading, error }] = useMutation(ADD_BOOK);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await createBook({
-      variables: {
-        title,
-        author,
-        publishedYear: parseInt(publishedYear),
-        genre,
-      },
-    });
-
-    router.push('/books');
+    try {
+      await createBook({
+        variables: {
+          title: formData.title,
+          author: formData.author,
+          publishedYear: parseInt(formData.publishedYear),
+          genre: formData.genre,
+        },
+      });
+      router.push('/books');
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>📖 Add a New Book</h2>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <label className={styles.label}>Title</label>
-        <input
-          type="text"
-          className={styles.input}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>📖 Add a New Book</h1>
+          <p className={styles.subtitle}>Fill in the details to add to your collection</p>
+        </div>
 
-        <label className={styles.label}>Author</label>
-        <input
-          type="text"
-          className={styles.input}
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
-          required
-        />
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label htmlFor="title" className={styles.label}>Book Title</label>
+            <input
+              id="title"
+              type="text"
+              name="title"
+              className={styles.input}
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Enter book title"
+              required
+            />
+          </div>
 
-        <label className={styles.label}>Published Year</label>
-        <input
-          type="number"
-          className={styles.input}
-          value={publishedYear}
-          onChange={(e) => setPublishedYear(e.target.value)}
-          required
-        />
+          <div className={styles.formGroup}>
+            <label htmlFor="author" className={styles.label}>Author</label>
+            <input
+              id="author"
+              type="text"
+              name="author"
+              className={styles.input}
+              value={formData.author}
+              onChange={handleChange}
+              placeholder="Enter author name"
+              required
+            />
+          </div>
 
-        <label className={styles.label}>Genre</label>
-        <input
-          type="text"
-          className={styles.input}
-          value={genre}
-          onChange={(e) => setGenre(e.target.value)}
-          required
-        />
+          <div className={styles.formGroup}>
+            <label htmlFor="publishedYear" className={styles.label}>Published Year</label>
+            <input
+              id="publishedYear"
+              type="number"
+              name="publishedYear"
+              className={styles.input}
+              value={formData.publishedYear}
+              onChange={handleChange}
+              placeholder="Enter publication year"
+              min="1000"
+              max={new Date().getFullYear()}
+              required
+            />
+          </div>
 
-        <button type="submit" className={styles.button} disabled={loading}>
-          {loading ? 'Adding...' : 'Add Book'}
-        </button>
+          <div className={styles.formGroup}>
+            <label htmlFor="genre" className={styles.label}>Genre</label>
+            <select
+              id="genre"
+              name="genre"
+              className={styles.input}
+              value={formData.genre}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>Select a genre</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Non-Fiction">Non-Fiction</option>
+              <option value="Science Fiction">Science Fiction</option>
+              <option value="Fantasy">Fantasy</option>
+              <option value="Mystery">Mystery</option>
+              <option value="Biography">Biography</option>
+              <option value="History">History</option>
+              <option value="Romance">Romance</option>
+            </select>
+          </div>
 
-        {error && <p className={styles.error}>{error.message}</p>}
-      </form>
+          <div className={styles.buttonGroup}>
+            <button type="submit" className={styles.primaryButton} disabled={loading}>
+              {loading ? (
+                <span className={styles.spinner}></span>
+              ) : (
+                'Add Book'
+              )}
+            </button>
+            <Link href="/homepage" className={styles.secondaryButton}>
+              Cancel
+            </Link>
+          </div>
+
+          {error && (
+            <div className={styles.error}>
+              <svg className={styles.errorIcon} viewBox="0 0 20 20">
+                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+              </svg>
+              {error.message}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }
