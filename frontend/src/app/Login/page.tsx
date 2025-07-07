@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { TextField, Button, Box, Typography, Snackbar, Alert } from '@mui/material';
 import styles from '../../../styles/login.module.css';
 
+// Define the GraphQL mutation for login
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +47,7 @@ export default function LoginPage() {
     setErrors(newErrors);
     return Object.values(newErrors).every((error) => error === '');
   };
-
+// Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -72,7 +73,7 @@ export default function LoginPage() {
       console.error(err);
     }
   };
-
+// Handle snackbar close
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };

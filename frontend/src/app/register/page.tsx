@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { TextField, Button, Box, Typography, Snackbar, Alert } from '@mui/material';
 import styles from '../../../styles/register.module.css';
 
+// Define the GraphQL mutation for registration
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -66,7 +67,7 @@ export default function RegisterPage() {
     setErrors(newErrors);
     return Object.values(newErrors).every((error) => error === '');
   };
-
+// Handle form submission to register a new user
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -92,7 +93,7 @@ export default function RegisterPage() {
       console.error(err);
     }
   };
-
+// Handle snackbar close
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };

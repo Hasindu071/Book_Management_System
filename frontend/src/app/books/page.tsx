@@ -7,6 +7,7 @@ import styles from '../../../styles/books.module.css';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Define the GraphQL query to fetch books
 const GET_BOOKS = gql`
   query {
     books {
@@ -18,7 +19,7 @@ const GET_BOOKS = gql`
     }
   }
 `;
-
+// Define the input type for updating a book
 const DELETE_BOOK = gql`
   mutation DeleteBook($id: Int!) {
     deleteBook(id: $id) {
@@ -26,7 +27,7 @@ const DELETE_BOOK = gql`
     }
   }
 `;
-
+// Define the input type for updating a book
 const UPDATE_BOOK = gql`
   mutation UpdateBook($id: Int!, $data: UpdateBookInput!) {
     updateBook(id: $id, data: $data) {
@@ -38,7 +39,7 @@ const UPDATE_BOOK = gql`
     }
   }
 `;
-
+// Define the Book type for TypeScript
 type Book = {
   id: number;
   title: string;
@@ -46,7 +47,7 @@ type Book = {
   genre: string;
   publishedYear: number;
 };
-
+// Books component to display and manage the book collection
 export default function Books() {
   const { data, loading, error, refetch } = useQuery(GET_BOOKS);
   const [deleteBook] = useMutation(DELETE_BOOK);
@@ -74,7 +75,7 @@ export default function Books() {
     message: '',
     severity: 'success' as 'success' | 'error'
   });
-
+// Validate form data before updating
   const validateForm = () => {
     const currentYear = new Date().getFullYear();
     const newErrors: typeof errors = {
@@ -83,7 +84,7 @@ export default function Books() {
       genre: '',
       publishedYear: ''
     };
-
+// Validate form data
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required.';
     }
@@ -102,7 +103,7 @@ export default function Books() {
     setErrors(newErrors);
     return Object.values(newErrors).every(error => error === '');
   };
-
+// Handle delete book action
   const handleDelete = async () => {
     if (bookToDelete !== null) {
       try {
@@ -116,7 +117,7 @@ export default function Books() {
       }
     }
   };
-
+// Open dialog handler for updating book details
   const handleOpenDialog = (book: Book) => {
     setSelectedBook(book);
     setFormData({
@@ -133,22 +134,22 @@ export default function Books() {
     });
     setOpenDialog(true);
   };
-
+  // Close dialog handler
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedBook(null);
   };
-
+  // Open delete dialog handler
   const handleOpenDeleteDialog = (id: number) => {
     setBookToDelete(id);
     setDeleteDialogOpen(true);
   };
-
+  // Close delete dialog handler
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setBookToDelete(null);
   };
-
+ // Handle update book action
   const handleUpdate = async () => {
     if (!validateForm()) {
       return;
@@ -175,28 +176,28 @@ export default function Books() {
       showSnackbar('Failed to update book', 'error');
     }
   };
-
+  // Show snackbar with message and severity
   const showSnackbar = (message: string, severity: 'success' | 'error') => {
     setSnackbar({ open: true, message, severity });
   };
-
+  // Close snackbar handler
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
-
+  // Filter books based on search input
   const filteredBooks = data?.books.filter((book: Book) =>
     book.title.toLowerCase().includes(search.toLowerCase()) ||
     book.author.toLowerCase().includes(search.toLowerCase()) ||
     book.genre.toLowerCase().includes(search.toLowerCase())
   );
-
+  // If loading, display a loading spinner
   if (loading) return (
     <Box className={styles.loadingContainer}>
       <CircularProgress size={60} thickness={4} />
       <Typography variant="h6" mt={2}>Loading your books...</Typography>
     </Box>
   );
-
+  // If there's an error, display an error message
   if (error) return (
     <Box className={styles.errorContainer}>
       <Alert severity="error" sx={{ width: '100%' }}>

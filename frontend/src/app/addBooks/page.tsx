@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Box, TextField, Button, Typography, MenuItem, CircularProgress, Alert } from '@mui/material';
 import styles from '../../../styles/addBook.module.css';
 
+// Define the GraphQL mutation to add a new book
 const ADD_BOOK = gql`
   mutation AddBook($title: String!, $author: String!, $publishedYear: Int!, $genre: String!) {
     createBook(data: { title: $title, author: $author, publishedYear: $publishedYear, genre: $genre }) {
@@ -15,7 +16,7 @@ const ADD_BOOK = gql`
     }
   }
 `;
-
+// Define the input type for the book form
 export default function AddBookPage() {
   const [formData, setFormData] = useState({
     title: '',
@@ -30,9 +31,9 @@ export default function AddBookPage() {
     genre: '',
   });
   const router = useRouter();
-
+// Use Apollo Client's useMutation hook to create a new book
   const [createBook, { loading, error }] = useMutation(ADD_BOOK);
-
+// Handle form input changes and update state
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -44,7 +45,7 @@ export default function AddBookPage() {
       [name]: '', // Clear the error message for the field being updated
     }));
   };
-
+// Validate form data before submission
   const validateForm = () => {
     const currentYear = new Date().getFullYear();
     const newErrors: typeof errors = {
@@ -53,7 +54,7 @@ export default function AddBookPage() {
       publishedYear: '',
       genre: '',
     };
-
+// Check if all fields are filled and validate the published year
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required.';
     }
@@ -76,7 +77,7 @@ export default function AddBookPage() {
     setErrors(newErrors);
     return Object.values(newErrors).every((error) => error === '');
   };
-
+// Handle form submission to create a new book
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
