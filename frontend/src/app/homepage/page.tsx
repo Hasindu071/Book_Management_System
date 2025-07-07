@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Box, Typography, Button, Card, CardContent } from '@mui/material';
-import { Grid } from '@mui/material';
+import { Box, Typography, Button, Card, CardContent, Grid } from '@mui/material';
 import styles from '../../../styles/home.module.css';
 
 export default function Home() {
