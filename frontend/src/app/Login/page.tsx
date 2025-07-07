@@ -5,6 +5,7 @@ import { useMutation } from '@apollo/client';
 import { LOGIN } from '../lib/queries';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { TextField, Button, Box, Typography, Snackbar, Alert } from '@mui/material';
 import styles from '../../../styles/login.module.css';
 
 export default function LoginPage() {
@@ -13,6 +14,15 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({
     username: '',
     password: '',
+  });
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'info' | 'warning' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
   });
   const [login, { loading, error }] = useMutation(LOGIN);
   const router = useRouter();
@@ -46,64 +56,99 @@ export default function LoginPage() {
 
     try {
       const res = await login({ variables: { username, password } });
+      setSnackbar({
+        open: true,
+        message: 'Login successful! Redirecting...',
+        severity: 'success',
+      });
       localStorage.setItem('token', res.data.login);
-      router.push('/homepage');
+      setTimeout(() => router.push('/homepage'), 2000);
     } catch (err) {
+      setSnackbar({
+        open: true,
+        message: 'Login failed. Please try again.',
+        severity: 'error',
+      });
       console.error(err);
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Welcome Back</h1>
-        <p className={styles.subtitle}>Sign in to your account</p>
+    <Box className={styles.container}>
+      <Box className={styles.card}>
+        <Typography variant="h4" className={styles.title}>
+          Welcome Back
+        </Typography>
+        <Typography variant="subtitle1" className={styles.subtitle}>
+          Sign in to your account
+        </Typography>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="username" className={styles.label}>Username</label>
-            <input
-              id="username"
-              className={styles.input}
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                setErrors((prev) => ({ ...prev, username: '' }));
-              }}
-              placeholder="Enter your username"
-              required
-            />
-            {errors.username && <p className={styles.error}>{errors.username}</p>}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="password" className={styles.label}>Password</label>
-            <input
-              id="password"
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrors((prev) => ({ ...prev, password: '' }));
-              }}
-              placeholder="Enter your password"
-              required
-            />
-            {errors.password && <p className={styles.error}>{errors.password}</p>}
-          </div>
-
-          <button type="submit" className={styles.button} disabled={loading}>
+          <TextField
+            label="Username"
+            variant="outlined"
+            fullWidth
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setErrors((prev) => ({ ...prev, username: '' }));
+            }}
+            error={!!errors.username}
+            helperText={errors.username}
+            className={styles.input}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrors((prev) => ({ ...prev, password: '' }));
+            }}
+            error={!!errors.password}
+            helperText={errors.password}
+            className={styles.input}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading || Object.values(errors).some((error) => error.length > 0)}
+            className={styles.button}
+          >
             {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-
-          {error && <p className={styles.error}>{error.message}</p>}
-
-          <div className={styles.registerLink}>
-            Don&#39;t have an account? <Link href="/register" className={styles.link}>Sign up</Link>
-          </div>
+          </Button>
+          {error && <Typography className={styles.error}>{error.message}</Typography>}
+          <Typography className={styles.registerLink}>
+            Don&#39;t have an account?{' '}
+            <Link href="/register" className={styles.link}>
+              Sign up
+            </Link>
+          </Typography>
         </form>
-      </div>
-    </div>
+      </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { gql, useMutation } from '@apollo/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Box, TextField, Button, Typography, MenuItem, CircularProgress, Alert } from '@mui/material';
 import styles from '../../../styles/addBook.module.css';
 
 const ADD_BOOK = gql`
@@ -20,27 +21,27 @@ export default function AddBookPage() {
     title: '',
     author: '',
     publishedYear: '',
-    genre: ''
+    genre: '',
   });
   const [errors, setErrors] = useState({
     title: '',
     author: '',
     publishedYear: '',
-    genre: ''
+    genre: '',
   });
   const router = useRouter();
 
   const [createBook, { loading, error }] = useMutation(ADD_BOOK);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [name]: '' // Clear the error message for the field being updated
+      [name]: '', // Clear the error message for the field being updated
     }));
   };
 
@@ -50,7 +51,7 @@ export default function AddBookPage() {
       title: '',
       author: '',
       publishedYear: '',
-      genre: ''
+      genre: '',
     };
 
     if (!formData.title.trim()) {
@@ -61,7 +62,11 @@ export default function AddBookPage() {
     }
     if (!formData.publishedYear.trim()) {
       newErrors.publishedYear = 'Published year is required.';
-    } else if (isNaN(Number(formData.publishedYear)) || Number(formData.publishedYear) < 1000 || Number(formData.publishedYear) > currentYear) {
+    } else if (
+      isNaN(Number(formData.publishedYear)) ||
+      Number(formData.publishedYear) < 1000 ||
+      Number(formData.publishedYear) > currentYear
+    ) {
       newErrors.publishedYear = `Published year must be between 1000 and ${currentYear}.`;
     }
     if (!formData.genre.trim()) {
@@ -69,7 +74,7 @@ export default function AddBookPage() {
     }
 
     setErrors(newErrors);
-    return Object.values(newErrors).every(error => error === '');
+    return Object.values(newErrors).every((error) => error === '');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,107 +100,100 @@ export default function AddBookPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>📖 Add a New Book</h1>
-          <p className={styles.subtitle}>Fill in the details to add to your collection</p>
-        </div>
+    <Box className={styles.container}>
+      <Box className={styles.card}>
+        <Typography variant="h4" className={styles.title}>
+          📖 Add a New Book
+        </Typography>
+        <Typography variant="subtitle1" className={styles.subtitle}>
+          Fill in the details to add to your collection
+        </Typography>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="title" className={styles.label}>Book Title</label>
-            <input
-              id="title"
-              type="text"
-              name="title"
-              className={styles.input}
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Enter book title"
-              required
-            />
-            {errors.title && <p className={styles.errorText}>{errors.title}</p>}
-          </div>
+          <TextField
+            label="Book Title"
+            name="title"
+            fullWidth
+            variant="outlined"
+            value={formData.title}
+            onChange={handleChange}
+            error={!!errors.title}
+            helperText={errors.title}
+            className={styles.input}
+          />
+          <TextField
+            label="Author"
+            name="author"
+            fullWidth
+            variant="outlined"
+            value={formData.author}
+            onChange={handleChange}
+            error={!!errors.author}
+            helperText={errors.author}
+            className={styles.input}
+          />
+          <TextField
+            label="Published Year"
+            name="publishedYear"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={formData.publishedYear}
+            onChange={handleChange}
+            error={!!errors.publishedYear}
+            helperText={errors.publishedYear}
+            className={styles.input}
+          />
+          <TextField
+            label="Genre"
+            name="genre"
+            select
+            fullWidth
+            variant="outlined"
+            value={formData.genre}
+            onChange={handleChange}
+            error={!!errors.genre}
+            helperText={errors.genre}
+            className={styles.input}
+          >
+            <MenuItem value="" disabled>
+              Select a genre
+            </MenuItem>
+            <MenuItem value="Fiction">Fiction</MenuItem>
+            <MenuItem value="Non-Fiction">Non-Fiction</MenuItem>
+            <MenuItem value="Science Fiction">Science Fiction</MenuItem>
+            <MenuItem value="Fantasy">Fantasy</MenuItem>
+            <MenuItem value="Mystery">Mystery</MenuItem>
+            <MenuItem value="Biography">Biography</MenuItem>
+            <MenuItem value="History">History</MenuItem>
+            <MenuItem value="Romance">Romance</MenuItem>
+          </TextField>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="author" className={styles.label}>Author</label>
-            <input
-              id="author"
-              type="text"
-              name="author"
-              className={styles.input}
-              value={formData.author}
-              onChange={handleChange}
-              placeholder="Enter author name"
-              required
-            />
-            {errors.author && <p className={styles.errorText}>{errors.author}</p>}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="publishedYear" className={styles.label}>Published Year</label>
-            <input
-              id="publishedYear"
-              type="number"
-              name="publishedYear"
-              className={styles.input}
-              value={formData.publishedYear}
-              onChange={handleChange}
-              placeholder="Enter publication year"
-              min="1000"
-              max={new Date().getFullYear()}
-              required
-            />
-            {errors.publishedYear && <p className={styles.errorText}>{errors.publishedYear}</p>}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="genre" className={styles.label}>Genre</label>
-            <select
-              id="genre"
-              name="genre"
-              className={styles.input}
-              value={formData.genre}
-              onChange={handleChange}
-              required
+          <Box className={styles.buttonGroup}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={loading}
+              className={styles.primaryButton}
             >
-              <option value="" disabled>Select a genre</option>
-              <option value="Fiction">Fiction</option>
-              <option value="Non-Fiction">Non-Fiction</option>
-              <option value="Science Fiction">Science Fiction</option>
-              <option value="Fantasy">Fantasy</option>
-              <option value="Mystery">Mystery</option>
-              <option value="Biography">Biography</option>
-              <option value="History">History</option>
-              <option value="Romance">Romance</option>
-            </select>
-            {errors.genre && <p className={styles.errorText}>{errors.genre}</p>}
-          </div>
-
-          <div className={styles.buttonGroup}>
-            <button type="submit" className={styles.primaryButton} disabled={loading}>
-              {loading ? (
-                <span className={styles.spinner}></span>
-              ) : (
-                'Add Book'
-              )}
-            </button>
-            <Link href="/homepage" className={styles.secondaryButton}>
-              Cancel
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Add Book'}
+            </Button>
+            <Link href="/homepage" passHref>
+              <Button variant="outlined" color="secondary" fullWidth className={styles.secondaryButton}>
+                Cancel
+              </Button>
             </Link>
-          </div>
+          </Box>
 
           {error && (
-            <div className={styles.error}>
-              <svg className={styles.errorIcon} viewBox="0 0 20 20">
-                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
-              </svg>
+            <Alert severity="error" className={styles.error}>
               {error.message}
-            </div>
+            </Alert>
           )}
         </form>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

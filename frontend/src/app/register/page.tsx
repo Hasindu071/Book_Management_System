@@ -5,6 +5,7 @@ import { useMutation } from '@apollo/client';
 import { REGISTER } from '../lib/queries';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { TextField, Button, Box, Typography, Snackbar, Alert } from '@mui/material';
 import styles from '../../../styles/register.module.css';
 
 export default function RegisterPage() {
@@ -15,6 +16,15 @@ export default function RegisterPage() {
     username: '',
     password: '',
     confirmPassword: '',
+  });
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'info' | 'warning' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
   });
   const [register, { loading, error }] = useMutation(REGISTER);
   const router = useRouter();
@@ -66,85 +76,113 @@ export default function RegisterPage() {
 
     try {
       const res = await register({ variables: { username, password } });
+      setSnackbar({
+        open: true,
+        message: 'Registration successful! Redirecting...',
+        severity: 'success',
+      });
       localStorage.setItem('token', res.data.register);
-      router.push('/login');
+      setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
+      setSnackbar({
+        open: true,
+        message: 'Registration failed. Please try again.',
+        severity: 'error',
+      });
       console.error(err);
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Create Your Account</h1>
-        <p className={styles.subtitle}>Join our community today</p>
+    <Box className={styles.container}>
+      <Box className={styles.card}>
+        <Typography variant="h4" className={styles.title}>
+          Create Your Account
+        </Typography>
+        <Typography variant="subtitle1" className={styles.subtitle}>
+          Join our community today
+        </Typography>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="username" className={styles.label}>Username</label>
-            <input
-              id="username"
-              className={styles.input}
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                setErrors((prev) => ({ ...prev, username: '' }));
-              }}
-              placeholder="Enter your username"
-              required
-            />
-            {errors.username && <p className={styles.error}>{errors.username}</p>}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="password" className={styles.label}>Password</label>
-            <input
-              id="password"
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrors((prev) => ({ ...prev, password: '' }));
-              }}
-              placeholder="Enter your password"
-              required
-            />
-            {errors.password && <p className={styles.error}>{errors.password}</p>}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="confirmPassword" className={styles.label}>Confirm Password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className={styles.input}
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                setErrors((prev) => ({ ...prev, confirmPassword: '' }));
-              }}
-              placeholder="Confirm your password"
-              required
-            />
-            {errors.confirmPassword && <p className={styles.error}>{errors.confirmPassword}</p>}
-          </div>
-
-          <button
+          <TextField
+            label="Username"
+            variant="outlined"
+            fullWidth
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setErrors((prev) => ({ ...prev, username: '' }));
+            }}
+            error={!!errors.username}
+            helperText={errors.username}
+            className={styles.input}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrors((prev) => ({ ...prev, password: '' }));
+            }}
+            error={!!errors.password}
+            helperText={errors.password}
+            className={styles.input}
+          />
+          <TextField
+            label="Confirm Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+            }}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
+            className={styles.input}
+          />
+          <Button
             type="submit"
-            className={styles.button}
+            variant="contained"
+            color="primary"
+            fullWidth
             disabled={loading || Object.values(errors).some((error) => error.length > 0)}
+            className={styles.submitButton}
           >
             {loading ? 'Registering...' : 'Sign Up'}
-          </button>
-
-          {error && <p className={styles.error}>{error.message}</p>}
-
-          <div className={styles.loginLink}>
-            Already have an account? <Link href="/login" className={styles.link}>Log in</Link>
-          </div>
+          </Button>
+          {error && <Typography className={styles.error}>{error.message}</Typography>}
+          <Typography className={styles.loginLink}>
+            Already have an account?{' '}
+            <Link href="/login" className={styles.link}>
+              Log in
+            </Link>
+          </Typography>
         </form>
-      </div>
-    </div>
+      </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }
