@@ -18,7 +18,7 @@ export default function Home() {
           <Box className={styles.buttonContainer}>
             <Link href="/books" passHref>
               <Button variant="contained" color="primary" className={styles.primaryButton}>
-                Browse Your Library
+                View Books
               </Button>
             </Link>
             <Link href="/addBooks" passHref>
