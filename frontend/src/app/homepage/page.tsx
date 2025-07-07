@@ -1,11 +1,69 @@
 'use client';
 import Link from 'next/link';
-import { Box, Typography, Button, Card, CardContent, Grid } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Box, Typography, Button, Card, CardContent, Grid, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import styles from '../../../styles/home.module.css';
 
 export default function Home() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  // Open confirmation dialog
+  const handleOpenDialog = () => {
+    setOpen(true);
+  };
+
+  // Close confirmation dialog
+  const handleCloseDialog = () => {
+    setOpen(false);
+  };
+
+  // Confirm logout
+  const handleConfirmLogout = () => {
+    // Clear user session (e.g., remove token from localStorage)
+    localStorage.removeItem('token');
+    // Redirect to the login page
+    router.push('/login');
+  };
+
   return (
     <Box className={styles.container}>
+      {/* Logout button in the top-right corner */}
+      <Box className={styles.logoutContainer}>
+        <Button
+          variant="contained"
+          color="error"
+          className={styles.logoutButton}
+          onClick={handleOpenDialog}
+        >
+          Logout
+        </Button>
+      </Box>
+
+      {/* Logout confirmation dialog */}
+      <Dialog
+        open={open}
+        onClose={handleCloseDialog}
+        aria-labelledby="logout-dialog-title"
+        aria-describedby="logout-dialog-description"
+      >
+        <DialogTitle id="logout-dialog-title">Confirm Logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="logout-dialog-description">
+            Are you sure you want to log out? You will need to log in again to access your account.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmLogout} color="error" autoFocus>
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box className={styles.hero}>
         <Box className={styles.content}>
           <Typography variant="h3" className={styles.title}>

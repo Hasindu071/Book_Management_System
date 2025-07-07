@@ -1,3 +1,4 @@
+/* Main container styles */
 .container {
   display: flex;
   justify-content: center;
@@ -9,8 +10,15 @@
   background-size: cover; 
   background-position: center; 
   padding: 20px;
+  animation: fadeIn 1s ease-in-out;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Hero section */
 .hero {
   max-width: 1200px;
   margin: 0 auto;
@@ -19,6 +27,7 @@
   gap: 3rem;
 }
 
+/* Content styles */
 .content {
   text-align: center;
   padding: 2rem;
@@ -33,20 +42,24 @@
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
+/* Title and subtitle */
 .title {
   font-size: 2.5rem;
   font-weight: 700;
   color: #2d3748;
   margin-bottom: 1rem;
   line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .subtitle {
   font-size: 1.25rem;
   color: #4a5568;
   margin-bottom: 2rem;
+  opacity: 0.9;
 }
 
+/* Button container */
 .buttonContainer {
   display: flex;
   gap: 1rem;
@@ -54,6 +67,7 @@
   flex-wrap: wrap;
 }
 
+/* Primary button styles */
 .primaryButton {
   background: #667eea;
   color: white;
@@ -74,6 +88,7 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+/* Secondary button styles */
 .secondaryButton {
   background: white;
   color: #667eea;
@@ -94,12 +109,14 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
+/* Features grid */
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
 }
 
+/* Feature card styles */
 .featureCard {
   background: white;
   padding: 2rem;
@@ -114,23 +131,58 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Feature icon */
 .featureIcon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
   color: #667eea;
 }
 
+/* Feature title */
 .featureCard h3 {
   font-size: 1.25rem;
   color: #2d3748;
   margin-bottom: 0.5rem;
 }
 
+/* Feature description */
 .featureCard p {
   color: #718096;
   font-size: 1rem;
 }
 
+.logoutContainer {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+.logoutButton {
+  background: #e53e3e; /* Red background */
+  color: white; /* White text */
+  border: 2px solid #e53e3e;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logoutButton:hover {
+  background: #c53030;
+  color: white; 
+  border-color: #c53030;
+}
+
+.logoutButton:active {
+  background: #9b2c2c;
+  border-color: #9b2c2c;
+  transform: scale(0.98); 
+}
+
+/* Responsive styles for tablets */
 @media (max-width: 768px) {
   .title {
     font-size: 2rem;
@@ -152,6 +204,7 @@
   }
 }
 
+/* Responsive styles for mobile */
 @media (max-width: 480px) {
   .content {
     padding: 1.5rem;
